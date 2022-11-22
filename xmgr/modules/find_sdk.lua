@@ -39,7 +39,8 @@ local function check_hash()
             local tail = - 7 - #hash
             local url = string.sub(tail_url,0,tail) .. ".git"
             if #proxyurls > 0 then
-                url = url:replace("/github.com/", "/" .. proxyurls[1] .. "/", {plain = true})
+                -- print("url : ", proxyurls[1])
+                url = url:replace("https://github.com/", proxyurls[1], {plain = true})
                 -- print("*** url :" ,url)
             end
             table.insert(project_hash,{name = name,url = url,hash = hash})
@@ -84,10 +85,9 @@ function check_src()
         old_md5 = io.readfile(cache_fn)
     else
         os.mkdir(path.directory(cache_fn))
-        io.writefile(cache_fn, new_md5)
     end
 
-    if new_md5 == old_md5 and os.exists(root_src) then
+    if new_md5 == old_md5 then
         return
     end
 
@@ -100,4 +100,5 @@ function check_src()
         update_project(obj)
     end
     print("end sync")
+    io.writefile(cache_fn, new_md5)
 end
