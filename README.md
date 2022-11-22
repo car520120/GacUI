@@ -49,3 +49,18 @@ You can build and install vlpp using [vcpkg](https://github.com/Microsoft/vcpkg/
 Source files in the "Import" folder are grouped by different features defined in [CMakeLists.txt](./Import/CMakeLists.txt).
 
 The vlpp port in vcpkg is kept up to date by Microsoft team members and community contributors. If the version is out of date, please [create an issue or pull request](https://github.com/Microsoft/vcpkg) on the vcpkg repository.
+
+#build for xmake  http://xmake.io/
+use import
+xmake f -m debug
+xmake 
+xmake run
+
+#use base code git needs to be installed
+xmake l setup.lua
+xmake f -m debug
+xmake
+xmake run
+
+
+
