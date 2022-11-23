@@ -63,6 +63,7 @@ The vlpp port in vcpkg is kept up to date by Microsoft team members and communit
   - xmake f -m debug
   - xmake
   - xmake run
+  - xmake run import   (codepack base code to import)
 
 
 
