@@ -35,7 +35,8 @@ local function check_gacui_src(is_no_flection)
     add_defines( "UNICODE", "_UNICODE")
     add_cxflags("/execution-charset:utf-8")
     set_group("libgacui")
-
+    add_configfiles(path.join(ui_src,"DarkSkin*.h"),{copyonly = true,prefixdir = "config/Skins/DarkSkin"})
+    add_includedirs("$(buildir)/config",{public = true})
     if is_no_flection then
         add_defines("VCZH_DEBUG_NO_REFLECTION")
         remove_files(path.join(ui_src,"GacUIReflection.cpp"))
