@@ -1,6 +1,8 @@
 add_rules("mode.debug", "mode.release")
 set_policy("build.across_targets_in_parallel", false)
 
+
+local rf_src = path.join(os.projectdir(),"src","GacUI","Test","GacUISrc","Metadata_Generate")
 local cc_src = path.join(os.projectdir(),"src","GacUI","Tools","GacGen","GacGen")
 local cp_src = path.join(os.projectdir(),"src","VlppParser2","Tools","CodePack","CodePack")
 local gp_src = path.join(os.projectdir(),"src","VlppParser2","Tools","GlrParserGen","GlrParserGen")
@@ -127,7 +129,6 @@ target("GlrParserGen")
     add_cxflags("/execution-charset:utf-8")
     add_files(path.join(gp_src,"**.cpp"))
 
-
 target("CodePack")
     set_languages("c++20")
     set_kind("binary")
@@ -137,6 +138,28 @@ target("CodePack")
     add_cxflags("/execution-charset:utf-8")
     add_files(path.join(cp_src,"**.cpp"))
 
+target("Reflection_bin")
+    set_languages("c++20")
+    set_kind("binary")
+    set_group("tools")
+    add_deps(base_ui_complete)
+    add_defines( "UNICODE", "_UNICODE")
+    add_cxflags("/execution-charset:utf-8")
+    add_files(path.join(rf_src,"**.cpp"))
+    add_includedirs(rf_src)
+    after_build(function (target)
+        local os_arch = is_arch("x64") and "64" or "32"
+        local reflection_fn = path.join(target:targetdir(),"Reflection" .. os_arch .. ".bin")
+        if not os.exists(reflection_fn) then
+            local meta_dir = path.join(target:targetdir(),"../../../Resources/Metadata/")
+            local meta_fn = path.join(meta_dir,"Reflection*.*")
+            os.mkdir(meta_dir)
+            os.run(target:targetfile())
+            os.mv(meta_fn,target:targetdir())
+            os.rmdir(path.directory(meta_dir))
+        end
+    end)
+    
 target("import")
     set_kind("phony")
     add_deps("CodePack")
