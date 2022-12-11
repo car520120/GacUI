@@ -1,7 +1,6 @@
 add_rules("mode.debug", "mode.release")
 set_policy("build.across_targets_in_parallel", false)
 
-
 local rf_src = path.join(os.projectdir(),"src","GacUI","Test","GacUISrc","Metadata_Generate")
 local cc_src = path.join(os.projectdir(),"src","GacUI","Tools","GacGen","GacGen")
 local cp_src = path.join(os.projectdir(),"src","VlppParser2","Tools","CodePack","CodePack")
@@ -20,7 +19,7 @@ local no_refection = 0
 local no_compiler = 1
 local gacui_full = 2
 
--- 0 no reflection 1 no ui compiler 2 full
+-- 0 no reflection 1 no compiler 2 gacui full
 local function check_gacui_src(build_flag)
     set_languages("c++20")
     add_files(path.join(vl_src,"**.cpp"))
@@ -41,7 +40,7 @@ local function check_gacui_src(build_flag)
     add_includedirs(vl_src,ui_src,wf_src,v2_src,{public = true})
     add_defines( "UNICODE", "_UNICODE")
     add_cxflags("/execution-charset:utf-8")
-    set_group("libgacui")
+    add_filegroups("src", {rootdir = path.join(os.projectdir(),"src") ,files = {"**.cpp","**.h"}})
     add_configfiles(path.join(ui_src,"DarkSkin*.h"),{copyonly = true,prefixdir = "config/Skins/DarkSkin"})
     add_includedirs("$(buildir)/config",{public = true})
     if no_refection == build_flag then
@@ -62,8 +61,9 @@ local function check_gacui_src(build_flag)
     end
 
     on_load(function(target)
-        if no_compiler == build_flag then
-            
+        if no_compiler >= build_flag then
+            target:remove("files",path.join(ui_src,"GacUICompiler.cpp"))
+            target:remove("headerfiles",path.join(ui_src,"GacUICompiler.h"))
         end
         if is_plat("windows") then
             target:remove("files",path.join(vl_src,"Vlpp.Linux.cpp"))
@@ -88,17 +88,24 @@ end
 
 target(base_ui_lite)
     set_kind("static")
+    set_group("libgacui")
     check_gacui_src(no_refection)
 
 target(base_ui)
     set_kind("static")
+    set_group("libgacui")
     check_gacui_src(no_compiler)
 
 target(base_ui_complete)
-    set_languages("c++20")
-    check_gacui_src(gacui_full)
+    add_deps(base_ui)
     set_kind("static")
     set_group("libgacui")
+    add_cxflags("/bigobj")
+    add_files(path.join(ui_src,"GacUICompiler.cpp"))
+    add_headerfiles(path.join(ui_src,"GacUICompiler.h"))
+    add_files(path.join(wf_src,"VlppWorkflowCompiler.cpp"))
+    add_headerfiles(path.join(wf_src,"VlppWorkflowCompiler.h"))
+    add_filegroups("src", {rootdir = path.join(os.projectdir(),"src") ,files = {"**.cpp","**.h"}})
 
 target("CppMerge")
     set_languages("c++20")
@@ -108,7 +115,7 @@ target("CppMerge")
     add_defines( "UNICODE", "_UNICODE")
     add_cxflags("/execution-charset:utf-8")
     add_files(path.join(cm_src,"Main.cpp"))
-
+    add_filegroups("src", {rootdir = cm_src ,files = {"**.cpp","**.h"}})
 
 target("GacGen")
     set_languages("c++20")
@@ -128,6 +135,7 @@ target("GlrParserGen")
     add_defines( "UNICODE", "_UNICODE")
     add_cxflags("/execution-charset:utf-8")
     add_files(path.join(gp_src,"**.cpp"))
+    add_filegroups("src", {rootdir = gp_src ,files = {"**.cpp","**.h"}})
 
 target("CodePack")
     set_languages("c++20")
@@ -137,6 +145,7 @@ target("CodePack")
     add_defines( "UNICODE", "_UNICODE")
     add_cxflags("/execution-charset:utf-8")
     add_files(path.join(cp_src,"**.cpp"))
+    add_filegroups("src", {rootdir = cp_src ,files = {"**.cpp","**.h"}})
 
 target("Reflection_bin")
     set_languages("c++20")
@@ -147,6 +156,7 @@ target("Reflection_bin")
     add_cxflags("/execution-charset:utf-8")
     add_files(path.join(rf_src,"**.cpp"))
     add_includedirs(rf_src)
+    add_filegroups("src", {rootdir = rf_src ,files = {"**.cpp","**.h"}})
     after_build(function (target)
         local os_arch = is_arch("x64") and "64" or "32"
         local reflection_fn = path.join(target:targetdir(),"Reflection" .. os_arch .. ".bin")
